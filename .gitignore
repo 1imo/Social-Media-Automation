@@ -1,0 +1,14 @@
+*.json
+
+session/*
+!session/
+
+approved/*
+!approved/
+
+pending_approval/*
+!pending_approval/
+
+__pycache__/*
+
+config/*

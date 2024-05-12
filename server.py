@@ -1,9 +1,10 @@
-from flask import Flask, render_template, jsonify, send_from_directory, request
 import os
 import shutil
+from flask import Flask, render_template, jsonify, send_from_directory, request
+
+from socials.socials_interface import SocialsInterface
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-# upload_interface = Upload_Interface()
 
 # Directories
 PENDING_APPROVAL = "./content/pending_approval"
@@ -63,9 +64,7 @@ def move_video(filename):
 
         # TODO - CAPTION IMPLEMENTATION
         
-        print(body)
-        # upload_interface.upload(platform, new_video_path)
-        
+        upload_interface.post_video(body.platform, new_video_path)
         
         return SUCCESS("Video uploaded successfully")
     except Exception as e:
@@ -73,4 +72,6 @@ def move_video(filename):
 
 
 if __name__ == "__main__":
+    upload_interface = SocialsInterface()
+    
     app.run(debug=True)
