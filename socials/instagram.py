@@ -1,79 +1,55 @@
-import requests
+# libs = os.path("../__init__.py")
+from account_management import Firefox
+from config import INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
+from instaloader import Profile, Instaloader, Post
 import os
 
-# Set the API endpoint URLs
-media_endpoint_url = (
-    f"https://graph.facebook.com/v19.0/{os.environ.get(IG_PAGE_ID)}/video_reels"
-)
-video_upload_endpoint_url = (
-    f"https://graph.facebook.com/v19.0/{os.environ.get(IG_PAGE_ID)}/video_reels"
-)
 
-# Set the access token
-access_token = os.environ.get("INSTAGRAM_ACCESS_TOKEN")
+class Instagram:
+    PENDING_APPROVAL_DIR: str = "../content/pending_approval"
 
-# Set the path to your local video file
-video_file_path = "../content/approved/C4C47TSOns_.mp4"
+    def __init__(self) -> None:
+        print("Initializing Instagram class...")
+        firefox = Firefox()
+        # self.instaloader: Instaloader = firefox.login(
+        #     INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
+        # )
+        self.instaloader: Instaloader = firefox.get_session()
+        self.context = self.instaloader.context
 
-# Check if the video file exists
-if not os.path.isfile(video_file_path):
-    print("Video file not found.")
-    exit(1)
+    def get_user(self, username: str) -> Profile:
+        print(f"Getting user: {username}")
+        return Profile.from_username(self.context, username)
 
-# Step 1: Initialize an upload session
-init_upload_params = {"upload_phase": "start", "access_token": access_token}
-init_upload_response = requests.post(
-    video_upload_endpoint_url, params=init_upload_params
-)
+    def get_similar_profiles(self, profile: Profile) -> list[Profile]:
+        print("Getting similar profiles...")
+        return list(Profile.get_similar_accounts(profile))
 
-if init_upload_response.status_code == 200:
-    video_id = init_upload_response.json()["video_id"]
-    upload_url = init_upload_response.json()["upload_url"]
-    print("Upload session initialized. Video ID:", video_id)
-else:
-    print("Failed to initialize upload session.")
-    print("Status code:", init_upload_response.status_code)
-    print("Error message:", init_upload_response.json().get("error", {}).get("message"))
-    exit(1)
+    def get_feed(self) -> list[Post]:
+        print("Getting feed posts...")
+        return list(Instaloader.get_feed_posts(self.context))
 
-# Step 2: Upload the video file
-with open(video_file_path, "rb") as video_file:
-    video_data = video_file.read()
-    video_upload_headers = {
-        "Authorization": f"OAuth {access_token}",
-        "offset": "0",
-        "file_size": str(os.path.getsize(video_file_path)),
-    }
-    video_upload_response = requests.post(
-        upload_url, headers=video_upload_headers, data=video_data
-    )
+    def get_saved_posts(self) -> list[Post]:
+        print("Getting saved posts...")
+        return list(Profile.get_saved_posts(self.context))
 
-    if video_upload_response.status_code == 200:
-        print("Video uploaded successfully.")
-    else:
-        print("Failed to upload video.")
-        print("Status code:", video_upload_response.status_code)
-        print(
-            "Error message:",
-            video_upload_response.json().get("error", {}).get("message"),
-        )
-        exit(1)
+    def get_users_posts(self, profile: Profile) -> list[Post]:
+        print("Getting user's posts...")
+        return list(Profile.get_posts(profile))
 
-# Step 3: Publish the reel
-publish_reel_params = {
-    "access_token": access_token,
-    "video_id": video_id,
-    "upload_phase": "finish",
-    "video_state": "PUBLISHED",
-    "description": "Check out this amazing reel! #awesome",
-}
-publish_reel_response = requests.post(media_endpoint_url, params=publish_reel_params)
+    def get_explore_posts(self) -> list[Post]:
+        print("Getting explore posts...")
+        return list(Instaloader.get_explore_posts(self.context))
 
-if publish_reel_response.status_code == 200:
-    print("Reel published successfully!")
-else:
-    print("Failed to publish reel.")
-    print("Status code:", publish_reel_response.status_code)
-    print(
-        "Error message:", publish_reel_response.json().get("error", {}).get("message")
-    )
+    def save_post(self, post: Post) -> None:
+        print("Saving post...")
+        os.makedirs(self.PENDING_APPROVAL_DIR, exist_ok=True)
+
+        if post.is_video:
+            video_filename: str = f"{post.shortcode}.mp4"
+            self.instaloader.download_post(post, target=self.PENDING_APPROVAL_DIR)
+            os.rename(
+                os.path.join(self.PENDING_APPROVAL_DIR, post.video_filename),
+                os.path.join(self.PENDING_APPROVAL_DIR, video_filename),
+            )
+            print(f"Renamed video to {video_filename}")
