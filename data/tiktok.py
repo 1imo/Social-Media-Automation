@@ -11,7 +11,7 @@ from tiktok_uploader.auth import AuthBackend
 class Tiktok:
     def __init__(self, cookie_path: str) -> None:
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         driver = webdriver.Chrome(options=options)
         auth_backend = AuthBackend(cookies=cookie_path)
         self.driver = auth_backend.authenticate_agent(driver)
@@ -80,72 +80,5 @@ class Tiktok:
 
 if __name__ == "__main__":
     tiktok = Tiktok(cookie_path="../config/cookies.txt")
-    queries = [
-        "car",
-        "vehicle",
-        "automobile",
-        "auto",
-        "motor",
-        "ride",
-        "wheels",
-        "sedan",
-        "coupe",
-        "hatchback",
-        "convertible",
-        "suv",
-        "truck",
-        "van",
-        "sports car",
-        "muscle car",
-        "classic car",
-        "vintage car",
-        "exotic car",
-        "luxury car",
-        "electric car",
-        "hybrid car",
-        "gasoline",
-        "diesel",
-        "horsepower",
-        "torque",
-        "engine",
-        "transmission",
-        "drivetrain",
-        "suspension",
-        "brakes",
-        "tires",
-        "rims",
-        "wheels",
-        "interior",
-        "exterior",
-        "performance",
-        "speed",
-        "acceleration",
-        "handling",
-        "drifting",
-        "racing",
-        "drag racing",
-        "off-roading",
-        "overlanding",
-        "modifications",
-        "tuning",
-        "customization",
-        "aftermarket parts",
-        "automotive",
-        "drive",
-        "driving",
-        "road trip",
-        "mechanic",
-        "repair",
-        "maintenance",
-        "detailing",
-        "wash",
-        "wax",
-        "polish",
-        "car show",
-        "meet",
-        "cruise",
-        "rally",
-        "drag",
-        "drift",
-    ]
-    tiktok.scrape_multiple_queries(queries, target_results=500)
+    queries = ["car", "vehicle"]
+    tiktok.scrape_multiple_queries(queries, target_results=2)
